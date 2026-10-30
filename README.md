@@ -139,6 +139,41 @@ Para o `PATCH`, envie só o que vai mudar: `{ "nome": "Maria S. Silva" }`.
 
 ---
 
+## 🌿 API de plantas (Folhagem & Cia)
+
+Campos da `Planta`: `id`, `nome`, `especie`, `preco` (inteiro, em centavos), `estoque`, `luminosidade` (`SOMBRA`, `MEIA_SOMBRA` ou `SOL_PLENO`), `petFriendly` (boolean), `regaACadaDias`, `createdAt` e `updatedAt`.
+
+| Método | Rota | O que faz | Sucesso | Erros |
+|---|---|---|---|---|
+| `POST` | `/plantas` | Cadastra (todos os campos obrigatórios) | `201` | `400` |
+| `GET` | `/plantas` | Lista; filtros opcionais `?luminosidade=`, `?petFriendly=`, `?nome=`, `?ordem=preco\|nome` | `200` | `400` filtro inválido |
+| `GET` | `/plantas/esgotadas` | Lista plantas com estoque zero | `200` | |
+| `GET` | `/plantas/estoque/valor-total` | `{ valorTotalEmCentavos, totalDeVasos }` | `200` | |
+| `GET` | `/plantas/:id` | Busca uma planta | `200` | `400` id inválido, `404` |
+| `PATCH` | `/plantas/:id` | Edita só os campos enviados | `200` | `400`, `404` |
+| `DELETE` | `/plantas/:id` | Remove | `204` | `400`, `404` |
+| `POST` | `/plantas/:id/venda` | Corpo `{ "quantidade": 2 }`; diminui o estoque | `200` | `400` (inclusive estoque insuficiente), `404` |
+
+Regras: `preco` > 0; `estoque` >= 0; `regaACadaDias` >= 1; `luminosidade` só aceita o enum; dados inválidos retornam `400` com `{ "message": "..." }`; id inexistente retorna `404`. A venda faz a checagem e a subtração no mesmo comando SQL (`updateMany` com `estoque >= quantidade`), então duas compras simultâneas do último vaso não deixam o estoque negativo.
+
+Exemplo de corpo para `POST /plantas`:
+
+```json
+{
+  "nome": "Costela-de-adão",
+  "especie": "Monstera deliciosa",
+  "preco": 8990,
+  "estoque": 12,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": false,
+  "regaACadaDias": 3
+}
+```
+
+Bônus implementados: busca por nome sem diferenciar maiúsculas (`?nome=`), ordenação (`?ordem=`) e `GET /plantas/esgotadas`. O script de seed não foi feito.
+
+---
+
 ## 🆘 Problemas comuns
 
 | Erro | O que fazer |
